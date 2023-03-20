@@ -10,5 +10,6 @@ router.get('/', isSignedIn, (req, res) => {
 
 router.post('/signup', isSignedIn, AuthController.signup);
 router.post('/signin',AuthController.signin);
+router.get('/signout',AuthController.signout);
 
 module.exports = router
