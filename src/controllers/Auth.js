@@ -58,7 +58,6 @@ exports.signin = async (req, res) => {
     }
 }
 exports.signout = async (req, res) => {
-    console.log("Sign out")
      res.status(200).clearCookie('token').json({message: 'logged out'});
 }
 exports.isSignedIn = expressjwt({
