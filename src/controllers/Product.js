@@ -1,11 +1,19 @@
 const Product = require('../models/Product');
 const Category = require('../models/Category');
-
+const mongoose = require('mongoose');
 exports.addProduct = async (req, res) => {
     try{
 
         const { name, price, quantity, description, category } = req.body;
-        const product = await Product.create({name, price, quantity, description, category});
+        const categoryId = await Category.findOne({ name: category}).distinct('_id')
+        if(!categoryId[0]){
+          return res.status(404).json({
+            message: "Category not found: " + category
+         });
+        } 
+        const product = await Product.create({name, price, quantity, description, category: categoryId[0] });
+        console.log(product.id)
+        await Category.findOneAndUpdate(categoryId[0], { $push: {products: product.id}});
         res.status(200).json(product);
     }catch(err){
         res.status(500).json({message: err.message || "Some error occurred while creating the product."});
@@ -22,7 +30,8 @@ exports.deleteProduct = async (req, res) => {
                 message: "Product not found with id " + productId
             });
         }
-        await product.remove();
+        await Category.findOneAndUpdate( product.category ,{ $pull: {products: product.id}});
+        await product.deleteOne();
         res.status(200).json({ message: "Product deleted successfully!" });
     } catch (err) {
         res.status(500).json({
@@ -79,5 +88,16 @@ exports.getAllProducts = async (req, res) => {
 }
 
 exports.getProductsInCategory = async (req, res) => {
+  console.log("ffffffffffffff");
+  try {
+    
+    const products = await Product.find({'category' : category.id})
+    .populate({path: 'category' , select:'name -_id'})
+    
 
+    res.json(products);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
 }

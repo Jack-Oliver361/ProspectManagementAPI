@@ -16,6 +16,8 @@ router.get('/signout',AuthController.signout);
 
 router.post('/product', ProductController.addProduct);
 router.get('/product', ProductController.getAllProducts);
+router.get('/product/:id', ProductController.getProductById);
 router.post('/category', CategoryController.addCategory);
-
+router.get('/category', CategoryController.getAllCategories);
+router.delete('/product/:id', ProductController.deleteProduct);
 module.exports = router
