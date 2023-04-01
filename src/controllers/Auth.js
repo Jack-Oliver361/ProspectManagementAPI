@@ -10,21 +10,33 @@ const bcrypt = require('bcrypt');
 exports.signup = async (req, res) => {
     try {
         const { username, password } = req.body;
+
         const token = req.cookies.token;
-        
+        if (!token) {
+            return res.status(401).json({ message: "Authentication token missing" });
+        }
+        try {
+            const decoded = jwt.verify(token, "secret");
+            if (decoded.role !== "admin") {
+                return res.status(403).json({ message: "Insufficient permissions" });
+            }
+        } catch (err) {
+            return res.status(401).json({ message: "Invalid token" });
+        }
+
         if (!(username && password)) {
             return res.status(400).send('All input is required')
         }
         const exsistingUser = await User.findOne({ username });
-        if(exsistingUser) {
+        if (exsistingUser) {
             return res.status(409).send('User already exists. Please login.');
         }
         encryptedPassword = await bcrypt.hash(password, 10);
         const user = await User.create({
-            username,password:encryptedPassword
+            username, password: encryptedPassword
         })
         res.status(200).json(user);
-    }catch (error) {
+    } catch (error) {
         res.status(400).json(error)
     }
 }
@@ -39,18 +51,18 @@ exports.signin = async (req, res) => {
         }
 
         const passwordcompare = await bcrypt.compare(password, user.password);
-        if(!passwordcompare){
+        if (!passwordcompare) {
             return res.status(401).json({ status: 'error', message: 'Invalid username/password' })
         }
-        
+
         const token = jwt.sign({
             id: user._id,
             username: user.username,
             role: user.role
-        },process.env.JWT_SECRET,{expiresIn: process.env.JWT_EXPIRES})
+        }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES })
 
-        res.cookie("token", token, {httpOnly: true})
-        res.json({message: "Login successful"})
+        res.cookie("token", token, { httpOnly: true })
+        res.json({ message: "Login successful" })
 
     } catch (error) {
         console.log(error);
@@ -58,16 +70,16 @@ exports.signin = async (req, res) => {
     }
 }
 exports.signout = async (req, res) => {
-     res.status(200).clearCookie('token').json({message: 'logged out'});
+    res.status(200).clearCookie('token').json({ message: 'logged out' });
 }
 exports.isSignedIn = expressjwt({
     secret: process.env.JWT_SECRET,
-    userProperty:'auth',
+    userProperty: 'auth',
     algorithms: ['HS256'],
-    getToken: function(req) {
+    getToken: function (req) {
         if (req.cookies['token']) {
-         return req.cookies['token'];
+            return req.cookies['token'];
         }
         return null;
-       }
+    }
 })

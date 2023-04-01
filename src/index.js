@@ -1,11 +1,25 @@
 const mongoose = require('mongoose');
 const app = require('./app');
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
+// Determine protocol based on environment
+const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+// Start server
+let server;
+if (protocol === "https") {
+    const httpsOptions = {
+        key: fs.readFileSync('./key.pem'),
+        cert: fs.readFileSync("./cert.pem"),
+    };
+    server = https.createServer(httpsOptions, app);
+} else {
+    server = http.createServer(app);
+}
 
-
-let server
-mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true,}).then(() => {
+mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true, }).then(() => {
     console.log('Connected to Database');
-        server = app.listen(process.env.PORT, () => {
-            console.log(`Listening to port ${process.env.PORT}`);
-        });
+    server.listen(process.env.PORT, () => {
+        console.log(`Listening to port ${process.env.PORT}`);
     });
+});
