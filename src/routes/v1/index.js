@@ -2,22 +2,24 @@ const express = require('express');
 const AuthController = require('../../controllers/Auth');
 const ProductController = require('../../controllers/Product');
 const CategoryController = require('../../controllers/Category');
-const {isSignedIn}=require("../../controllers/Auth");
+const { isSignedIn } = require("../../controllers/Auth");
+const { adminCheck } = require("../../controllers/Auth");
 const router = express.Router()
 
-router.get('/', isSignedIn, (req, res) => {
-    res.send('Hello World!')
-    
-});
+router.post('/signin', AuthController.signin);
 
-router.post('/signup', isSignedIn, AuthController.signup);
-router.post('/signin',AuthController.signin);
-router.get('/signout',AuthController.signout);
+router.use(isSignedIn)
 
-router.post('/product', ProductController.addProduct);
-router.get('/product', ProductController.getAllProducts);
-router.get('/product/:id', ProductController.getProductById);
-router.post('/category', CategoryController.addCategory);
-router.get('/category', CategoryController.getAllCategories);
-router.delete('/product/:id', ProductController.deleteProduct);
+router.get('/signout', adminCheck, AuthController.signout);
+
+
+router.post('/signup', adminCheck, AuthController.signup);
+
+router.post('/product', adminCheck, ProductController.addProduct);
+router.get('/product', adminCheck, ProductController.getAllProducts);
+router.get('/product/:id', adminCheck, ProductController.getProductById);
+router.post('/category', adminCheck, CategoryController.addCategory);
+router.get('/category', adminCheck, CategoryController.getAllCategories);
+router.delete('/product/:id', adminCheck, ProductController.deleteProduct);
+
 module.exports = router

@@ -12,8 +12,11 @@ app.use('/api', routes);
 
 app.use(function (err, req, res, next) {
     if (err.name === 'UnauthorizedError') {
-        return res.status(401).json({message: 'Invalid token', error: err.inner.message});
+        return res.status(401).json({ message: 'Invalid token', error: err.inner.message });
     }
-    next(err)
+});
+app.use(function (req, res) {
+    // Invalid request
+    res.status(404).json({ message: 'Invalid Request' });
 });
 module.exports = app;

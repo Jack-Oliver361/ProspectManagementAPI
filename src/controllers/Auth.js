@@ -10,20 +10,6 @@ const bcrypt = require('bcrypt');
 exports.signup = async (req, res) => {
     try {
         const { username, password } = req.body;
-
-        const token = req.cookies.token;
-        if (!token) {
-            return res.status(401).json({ message: "Authentication token missing" });
-        }
-        try {
-            const decoded = jwt.verify(token, "secret");
-            if (decoded.role !== "admin") {
-                return res.status(403).json({ message: "Insufficient permissions" });
-            }
-        } catch (err) {
-            return res.status(401).json({ message: "Invalid token" });
-        }
-
         if (!(username && password)) {
             return res.status(400).send('All input is required')
         }
@@ -72,14 +58,34 @@ exports.signin = async (req, res) => {
 exports.signout = async (req, res) => {
     res.status(200).clearCookie('token').json({ message: 'logged out' });
 }
-exports.isSignedIn = expressjwt({
-    secret: process.env.JWT_SECRET,
-    userProperty: 'auth',
-    algorithms: ['HS256'],
-    getToken: function (req) {
-        if (req.cookies['token']) {
-            return req.cookies['token'];
+
+
+exports.isSignedIn =
+    expressjwt({
+        secret: process.env.JWT_SECRET,
+        userProperty: 'auth',
+        algorithms: ['HS256'],
+        getToken: function (req) {
+            if (req.cookies['token']) {
+                return req.cookies['token'];
+            }
+            return null;
         }
-        return null;
+    })
+
+
+
+exports.adminCheck = (req, res, next) => {
+    try {
+        const token = req.cookies.token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded.role)
+        if (decoded.role !== "admin") {
+            console.log("fff");
+            return res.status(403).json({ message: "Insufficient permissions" });
+        }
+        next()
+    } catch (error) {
+        return res.status(401).send({ message: `No Access token provided` })
     }
-})
+}
