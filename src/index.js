@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const http = require('http');
 const https = require('https');
+const path = require('path');
 const fs = require('fs');
 // Determine protocol based on environment
 const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
@@ -9,8 +10,8 @@ const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
 let server;
 if (protocol === "https") {
     const httpsOptions = {
-        key: fs.readFileSync('./key.pem'),
-        cert: fs.readFileSync("./cert.pem"),
+        key: fs.readFileSync(path.join(__dirname, 'cert', 'key.pem')),
+        cert: fs.readFileSync(path.join(__dirname, 'cert', 'cert.pem')),
     };
     server = https.createServer(httpsOptions, app);
 } else {
