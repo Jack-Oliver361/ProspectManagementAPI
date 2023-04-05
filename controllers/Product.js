@@ -8,11 +8,11 @@ exports.addProduct = async (req, res) => {
 
     const { name, price, quantity, description, category } = req.body;
     const categoryId = await Category.findOne({ name: category }).distinct('_id')
-    if (!categoryId[0]) {
-      return res.status(404).json({
-        message: "Category not found: " + category
-      });
-    }
+    // if (!categoryId[0]) {
+    //   return res.status(404).json({
+    //     message: "Category not found: " + category
+    //   });
+    // }
     const product = await Product.create({ name, price, quantity, description, category: categoryId[0] });
     await Category.findOneAndUpdate(categoryId[0], { $push: { products: product.id } });
     res.status(200).json(product);
@@ -43,12 +43,20 @@ exports.deleteProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const { name, price, quantity, description, category_id } = req.body;
-    const product = await Product.findByIdAndUpdate(
-      req.params._id,
-      { name, price, quantity, description, category_id },
+    const { name, price, quantity, description, category } = req.body;
+    const categoryId = await Category.findOne({ name: category }).distinct('_id')
+    const oldCategory = 0;
+    const product = await Product.findById(req.params.id);
+    Product.updateOne(
+      product,
+      { name, price, quantity, description, category: categoryId[0] },
       { new: true }
     );
+    if (category) {
+      console.log("dfdd")
+      await Category.findOneAndUpdate(product.category, { $pull: { products: product.id } });
+      await Category.findOneAndUpdate(categoryId[0], { $push: { products: product.id } });
+    }
     if (!product) {
       return res.status(404).json({
         message: "Product not found with id " + req.params.id

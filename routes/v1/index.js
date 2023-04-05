@@ -18,6 +18,7 @@ router.post('/signup', adminCheck, AuthController.signup);
 router.post('/product', adminCheck, ProductController.addProduct);
 router.get('/product', adminCheck, ProductController.getAllProducts);
 router.get('/product/:id', adminCheck, ProductController.getProductById);
+router.patch('/product/:id', adminCheck, ProductController.updateProduct);
 router.delete('/product/:id', adminCheck, ProductController.deleteProduct);
 
 router.post('/category', adminCheck, CategoryController.addCategory);

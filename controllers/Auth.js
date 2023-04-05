@@ -9,7 +9,7 @@ const bcrypt = require('bcrypt');
 
 exports.signup = async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, role } = req.body;
         if (!(username && password)) {
             return res.status(400).send('All input is required')
         }
@@ -19,7 +19,7 @@ exports.signup = async (req, res) => {
         }
         encryptedPassword = await bcrypt.hash(password, 10);
         const user = await User.create({
-            username, password: encryptedPassword
+            username, password: encryptedPassword, role
         })
         res.status(200).json(user);
     } catch (error) {
@@ -79,9 +79,7 @@ exports.adminCheck = (req, res, next) => {
     try {
         const token = req.cookies.token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decoded.role)
         if (decoded.role !== "admin") {
-            console.log("fff");
             return res.status(403).json({ message: "Insufficient permissions" });
         }
         next()
