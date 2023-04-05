@@ -18,8 +18,12 @@ router.post('/signup', adminCheck, AuthController.signup);
 router.post('/product', adminCheck, ProductController.addProduct);
 router.get('/product', adminCheck, ProductController.getAllProducts);
 router.get('/product/:id', adminCheck, ProductController.getProductById);
+router.delete('/product/:id', adminCheck, ProductController.deleteProduct);
+
 router.post('/category', adminCheck, CategoryController.addCategory);
 router.get('/category', adminCheck, CategoryController.getAllCategories);
-router.delete('/product/:id', adminCheck, ProductController.deleteProduct);
+router.get('/category/:name', adminCheck, CategoryController.getCategoryByName);
+router.delete('/category/:name', adminCheck, CategoryController.deleteCategory);
+
 
 module.exports = router
