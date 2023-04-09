@@ -33,7 +33,11 @@ exports.getAllCategories = async (req, res) => {
 
 exports.getCategoryByName = async (req, res) => {
   try {
-    const category = await Category.findOne({ name: toTitleCase(req.params.name) }).populate({ path: 'products' });
+    const category = await Category.findOne({ name: toTitleCase(req.params.name) }).populate({
+      path: 'products',
+      model: 'Product',
+      foreignField: 'barcode'
+    });
     if (!category) {
       return res.status(404).json({
         message: "Ctaegory not found with name: " + req.params.name
@@ -42,7 +46,7 @@ exports.getCategoryByName = async (req, res) => {
     res.json(category);
   } catch (err) {
     res.status(500).json({
-      message: "Error retrieving product with name: " + req.params.name
+      errorMessage: err.message
     });
   }
 }
