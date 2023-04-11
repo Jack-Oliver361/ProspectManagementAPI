@@ -9,37 +9,33 @@ exports.addProduct = async (req, res) => {
   if (!categoryDoc) {
     res.status(500).json({ message: "The category: " + category + " is not available, Please create a new category first" });
   }
-  const product = await Product.create({ barcode, name, price, quantity, orderLimit, description, category: categoryDoc._id }).then(() => {
+  await Product.create({ barcode, name, price, quantity, orderLimit, description, category: categoryDoc._id }).then((product) => {
     res.status(200).json(product);
   }).catch(err => {
     if (err.code === 11000) {
       res.status(500).json({ message: "The field: '" + err.message.split(" ").map((el, key, array) => el.includes("index:") && array[key + 1]).filter(Boolean)[0].replace(/\_\d+/g, "") + "' must be unquie" });
     } else {
-      res.status(500).json({ message: err.name });
+      res.status(500).json({ message: err.message });
     }
   });
 }
 
 exports.deleteProduct = async (req, res) => {
-  try {
-    const productId = req.params.barcode;
-    const product = await Product.findOne({ barcode: req.params.barcode });
-    if (product.length == 0) {
+  const productId = req.params.barcode;
+  await Product.findOneAndDelete({ barcode: req.params.barcode }).then((product) => {
+    if (!product) {
       console.log(product)
       return res.status(404).json({
-        message: "Product not found with id " + productId
+        message: "Product not found with barcode: " + productId
       });
     }
-    //await Category.findOneAndUpdate(product.category, { $pull: { products: product.id } });
-    await product.deleteOne()
     res.status(200).json({ message: "Product deleted successfully!" });
-  } catch (err) {
+  }).catch((err) => {
     res.status(500).json({
       message: err.message || "Some error occurred while deleting the product."
     });
-  }
+  });
 }
-
 exports.updateProduct = async (req, res) => {
   try {
     const { barcode, name, price, quantity, orderlimit, description, category } = req.body;
