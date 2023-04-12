@@ -13,32 +13,26 @@ const productSchema = new mongoose.Schema({
 });
 
 productSchema.pre('findOneAndUpdate', async function (next) {
-    try {
-        const barcode = this.getQuery()['barcode'];
-        const { category: newCategoryId } = this._update;
-        // check if category is being updated
-        if (newCategoryId) {
-            const doc = await this.model.findOne({ barcode: barcode }).lean();
-            const oldCategoryId = doc.category;
-            const [oldCategory, newCategory] = await Promise.all([
-                Category.findByIdAndUpdate(oldCategoryId, { $pull: { products: barcode } }),
-                Category.findByIdAndUpdate(newCategoryId, { $addToSet: { products: barcode } }, { new: true })
-            ]);
-
-            if (!oldCategory || !newCategory) {
-                throw new Error('Could not update categories');
-            }
-        }
-
-        next();
-    } catch (err) {
-        next(err);
+    const { category: categoryChange } = this._update
+    console.log("aaaa")
+    if (categoryChange) {
+        console.log('hi111')
+        this._oldDoc = await this.model.findOne(this.getQuery());
     }
 });
 
-productSchema.pre('findOneAndDelete', async function (next) {
+productSchema.post('findOneAndUpdate', async function (doc) {
+    console.log("aaaa2")
+    const oldDoc = this._oldDoc;
+    console.log("aaaa3")
+    if (oldDoc && oldDoc.category !== doc.category) {
+        console.log("aaaa4")
+        await Category.findByIdAndUpdate(oldDoc.category, { $pull: { products: oldDoc.barcode } });
+        await Category.findByIdAndUpdate(doc.category, { $push: { products: doc.barcode } });
+    }
+});
+productSchema.post('findOneAndDelete', async function (doc, next) {
     try {
-        const doc = await this.model.findOne({ barcode: this.getQuery().barcode }).lean();
         await Category.findByIdAndUpdate(doc.category, { $pull: { products: doc.barcode } });
         next();
     } catch (err) {
@@ -48,8 +42,7 @@ productSchema.pre('findOneAndDelete', async function (next) {
 
 productSchema.post('save', async function (doc, next) {
     try {
-        console.log("hi");
-        await Category.findByIdAndUpdate(this.category, { $push: { products: this.barcode } });
+        await Category.findByIdAndUpdate(doc.category, { $push: { products: doc.barcode } });
         next();
     } catch (err) {
         next(err);

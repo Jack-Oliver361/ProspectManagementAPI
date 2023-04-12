@@ -7,7 +7,7 @@ exports.addProduct = async (req, res) => {
   const { barcode, name, price, quantity, orderLimit, description, category } = req.body;
   const categoryDoc = await Category.findOne({ name: category })
   if (!categoryDoc) {
-    res.status(500).json({ message: "The category: " + category + " is not available, Please create a new category first" });
+    res.status(404).json({ message: "The category: " + category + " is not available, Please create a new category first" });
   }
   await Product.create({ barcode, name, price, quantity, orderLimit, description, category: categoryDoc._id }).then((product) => {
     res.status(200).json(product);
@@ -36,6 +36,7 @@ exports.deleteProduct = async (req, res) => {
     });
   });
 }
+
 exports.updateProduct = async (req, res) => {
   try {
     const { barcode, name, price, quantity, orderlimit, description, category } = req.body;
@@ -44,7 +45,7 @@ exports.updateProduct = async (req, res) => {
       { barcode: req.params.barcode },
       { barcode, name, price, quantity, orderlimit, description, category: categoryId[0] },
       { new: true }
-    ).populate('category', 'name -_id');
+    ).populate('category', 'name _id');
     if (!product) {
       return res.status(404).json({
         message: "Product not found with id " + req.params.barcode
