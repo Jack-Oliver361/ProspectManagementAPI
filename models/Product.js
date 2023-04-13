@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Category = require('../models/Category');
+
 const productSchema = new mongoose.Schema({
     barcode: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true, unique: true },
@@ -14,29 +15,37 @@ const productSchema = new mongoose.Schema({
 
 productSchema.pre('findOneAndUpdate', async function (next) {
     const { category: categoryChange } = this._update
-    console.log("aaaa")
+    this._categoryUpdated = false
     if (categoryChange) {
-        console.log('hi111')
-        this._oldDoc = await this.model.findOne(this.getQuery());
+        try {
+            const doc = await this.model.findOne(this.getQuery()).select('category -_id');
+            this._OldCategory = doc.category
+            this._categoryUpdated = true
+            next()
+        } catch (err) {
+            next(new Error("Product barcode: " + this.getQuery().barcode + " not found"))
+        }
     }
 });
 
-productSchema.post('findOneAndUpdate', async function (doc) {
-    console.log("aaaa2")
-    const oldDoc = this._oldDoc;
-    console.log("aaaa3")
-    if (oldDoc && oldDoc.category !== doc.category) {
-        console.log("aaaa4")
-        await Category.findByIdAndUpdate(oldDoc.category, { $pull: { products: oldDoc.barcode } });
-        await Category.findByIdAndUpdate(doc.category, { $push: { products: doc.barcode } });
+productSchema.post('findOneAndUpdate', async function (doc, next) {
+    if (doc) {
+        if (this._categoryUpdated) {
+            await Category.findByIdAndUpdate(this._OldCategory, { $pull: { products: doc.barcode } });
+            await Category.findByIdAndUpdate(doc.category, { $push: { products: doc.barcode } });
+        }
+        next()
     }
 });
 productSchema.post('findOneAndDelete', async function (doc, next) {
-    try {
-        await Category.findByIdAndUpdate(doc.category, { $pull: { products: doc.barcode } });
-        next();
-    } catch (err) {
-        next(err);
+    if (doc) {
+        try {
+            console.log(doc);
+            await Category.findByIdAndUpdate(doc.category, { $pull: { products: doc.barcode } });
+            next();
+        } catch (err) {
+            next(err);
+        }
     }
 });
 
