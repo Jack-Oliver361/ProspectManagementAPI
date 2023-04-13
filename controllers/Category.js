@@ -16,9 +16,13 @@ exports.addCategory = async (req, res) => {
     const addcategory = await Category.create({ name: toTitleCase(name) });
     res.status(200).json(addcategory);
   } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    if (err.code === 11000) {
+      res.status(500).json({ message: "The field: '" + err.message.split(" ").map((el, key, array) => el.includes("index:") && array[key + 1]).filter(Boolean)[0].replace(/\_\d+/g, "") + "' must be unquie" });
+    } else {
+      res.status(500).json({ message: "You must provide the name of the category" });
+    }
 
+  }
 }
 
 exports.getAllCategories = async (req, res) => {
@@ -27,7 +31,7 @@ exports.getAllCategories = async (req, res) => {
     res.json(categories);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Could not retrieve all the categories' });
   }
 }
 
@@ -40,7 +44,7 @@ exports.getCategoryByName = async (req, res) => {
     });
     if (!category) {
       return res.status(404).json({
-        message: "Ctaegory not found with name: " + req.params.name
+        message: "Category not found with name: " + req.params.name
       });
     }
     res.json(category);
@@ -53,12 +57,21 @@ exports.getCategoryByName = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
   try {
-    const category = await Category.findOne({ name: toTitleCase(req.params.name) });
-    const defaultCategory = await Category.findOne({ name: 'Uncategorized' });
-    const products = await Product.updateMany({ category: category.id }, { category: defaultCategory.id });
-    await Category.findOneAndUpdate(defaultCategory.id, { $push: { products: category.products } });
-    await category.deleteOne();
-    res.status(200).json({ message: "Category deleted successfully!, All product under this category moved to Uncategorized" });
+    if (req.params.name != 'Uncategorized') {
+      const category = await Category.findOne({ name: toTitleCase(req.params.name) });
+      if (!category) {
+        return res.status(404).json({
+          message: "Category not found with name: " + req.params.name
+        });
+      }
+      const defaultCategory = await Category.findOne({ name: 'Uncategorized' });
+      const products = await Product.updateMany({ category: category.id }, { category: defaultCategory.id });
+      await Category.findOneAndUpdate(defaultCategory.id, { $push: { products: category.products } });
+      await category.deleteOne();
+      res.status(200).json({ message: "Category deleted successfully!, All product under this category moved to Uncategorized" });
+    } else {
+      res.status(500).json({ message: "You can not delete the default category" });
+    }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
