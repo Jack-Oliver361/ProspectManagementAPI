@@ -2,6 +2,7 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 
 
+
 exports.addProduct = async (req, res) => {
   try {
     const { barcode, name, price, quantity, orderLimit, description, category } = req.body;
@@ -34,7 +35,7 @@ exports.deleteProduct = async (req, res) => {
     res.status(200).json({ message: "Product deleted successfully!" });
   } catch (err) {
     res.status(500).json({
-      message: err.message + "ffff" || "Some error occurred while deleting the product."
+      message: err.message || "Some error occurred while deleting the product."
     });
   };
 }

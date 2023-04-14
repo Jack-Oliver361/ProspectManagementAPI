@@ -13,17 +13,13 @@ exports.signup = async (req, res) => {
         if (!(username && password)) {
             return res.status(400).send('All input is required')
         }
-        const exsistingUser = await User.findOne({ username });
-        if (exsistingUser) {
-            return res.status(409).send('User already exists. Please login.');
-        }
         encryptedPassword = await bcrypt.hash(password, 10);
         const user = await User.create({
             username, password: encryptedPassword, role
         })
         res.status(200).json(user);
     } catch (error) {
-        res.status(400).json(error)
+        res.status(500).json(error.message)
     }
 }
 
