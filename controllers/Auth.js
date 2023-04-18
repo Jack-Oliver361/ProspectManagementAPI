@@ -17,7 +17,7 @@ exports.signup = async (req, res) => {
         const user = await User.create({
             username, password: encryptedPassword, role
         })
-        res.status(200).json(user);
+        res.status(200).json({ message: 'User: ' + user.username + ' created successfully' });
     } catch (error) {
         res.status(500).json(error.message)
     }
@@ -81,5 +81,6 @@ exports.adminCheck = (req, res, next) => {
         next()
     } catch (error) {
         return res.status(401).send({ message: `No Access token provided` })
+
     }
 }

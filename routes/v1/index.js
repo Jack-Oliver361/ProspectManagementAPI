@@ -2,6 +2,7 @@ const express = require('express');
 const AuthController = require('../../controllers/Auth');
 const ProductController = require('../../controllers/Product');
 const CategoryController = require('../../controllers/Category');
+const TransactionController = require('../../controllers/Transaction');
 const { isSignedIn } = require("../../controllers/Auth");
 const { adminCheck } = require("../../controllers/Auth");
 const router = express.Router()
@@ -25,6 +26,10 @@ router.post('/category', adminCheck, CategoryController.addCategory);
 router.get('/category', adminCheck, CategoryController.getAllCategories);
 router.get('/category/:name', adminCheck, CategoryController.getCategoryByName);
 router.delete('/category/:name', adminCheck, CategoryController.deleteCategory);
+
+
+router.post('/transaction', adminCheck, TransactionController.saveTransaction);
+router.get('/transaction', adminCheck, TransactionController.getTransaction);
 
 
 module.exports = router
