@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
     products: [{
-        item: { type: String },
+        name: { type: String },
         quantity: { type: Number },
         subtotal: { type: Number }
     }, { _id: false }],
