@@ -29,7 +29,7 @@ router.delete('/category/:name', adminCheck, CategoryController.deleteCategory);
 
 
 router.post('/transaction', adminCheck, TransactionController.saveTransaction);
-router.get('/transaction', adminCheck, TransactionController.getTransaction);
+router.get('/transaction', adminCheck, TransactionController.getAllTransactions);
 
 
 module.exports = router
