@@ -28,9 +28,8 @@ exports.addCategory = async (req, res) => {
 exports.getAllCategories = async (req, res) => {
   try {
     const categories = await Category.find();
-    res.json(categories);
+    res.status(200).json(categories);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Could not retrieve all the categories' });
   }
 }
@@ -47,10 +46,10 @@ exports.getCategoryByName = async (req, res) => {
         message: "Category not found with name: " + req.params.name
       });
     }
-    res.json(category);
+    res.status(200).json(category);
   } catch (err) {
     res.status(500).json({
-      errorMessage: err.message
+      message: err.message
     });
   }
 }

@@ -17,46 +17,63 @@ exports.saveTransaction = async (req, res) => {
         const transaction = await Transaction.create({ products, total, transactionBy })
         res.status(200).json(transaction);
     } catch (err) {
-        console.log(err)
+        res.status(500).json({ message: err.message });
     }
 }
 exports.getAllTransactions = async (req, res) => {
     try {
         const transactions = await Transaction.find()
-        res.json(transactions);
+        res.status(200).json(transactions);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: err.message });
     }
 }
 exports.getTransactionById = async (req, res) => {
     try {
         const transactionId = req.params.id
         const transaction = await Transaction.findById(transactionId)
-        res.json(transaction);
+        if (!transaction) {
+            return res.status(404).json({
+                message: "Transaction not found with id: " + req.params.id
+            });
+        }
+        res.status(200).json(transaction);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
+        if (err.name === 'CastError') {
+            res.status(500).json({ message: "ID invaild, make sure the id is correct" });
+        } else {
+            res.status(500).json({ message: err.message });
+        }
     }
 }
 exports.getTransactionsByDateRange = async (req, res) => {
     try {
         const startDate = new Date(req.params.startDate)
         const endDate = new Date(req.params.endDate)
-        const transactions = await Transaction.find({ date: { $gte: startDate, $lte: endDate }})
-        res.json(transactions);
+        endDate.setHours(23, 59, 59, 0)
+        const transactions = await Transaction.find({ date: { $gte: startDate, $lte: endDate } })
+        if (transactions.length == 0) {
+            return res.status(404).json({
+                message: "Transaction not found within the given date range: " + startDate.toDateString() + " - " + endDate.toDateString()
+            });
+        }
+        res.status(200).json(transactions);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: err.message });
     }
 }
 exports.DeleteTransaction = async (req, res) => {
     try {
         const transactionId = req.params.id
         const transaction = await Transaction.findByIdAndDelete(transactionId)
-        res.json(transaction);
+        if (transaction) {
+            res.status(200).json({ message: "transaction deleted successfully!" });
+        }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server Error' });
+        if (err.name === 'CastError') {
+            res.status(500).json({ message: "ID invaild, make sure the id is correct" });
+        } else {
+            res.status(500).json({ message: err.message });
+        }
     }
 }

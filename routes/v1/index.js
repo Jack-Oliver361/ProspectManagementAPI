@@ -30,6 +30,9 @@ router.delete('/category/:name', adminCheck, CategoryController.deleteCategory);
 
 router.post('/transaction', adminCheck, TransactionController.saveTransaction);
 router.get('/transaction', adminCheck, TransactionController.getAllTransactions);
+router.get('/transaction/:id', adminCheck, TransactionController.getTransactionById);
+router.get('/transaction/:startDate/:endDate', adminCheck, TransactionController.getTransactionsByDateRange);
+router.delete('/transaction/:id', adminCheck, TransactionController.DeleteTransaction);
 
 
 module.exports = router

@@ -24,9 +24,7 @@ exports.addProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const productId = req.params.barcode;
-    console.log(productId);
     const product = await Product.findOneAndDelete({ barcode: req.params.barcode })
-    console.log(product)
     if (!product) {
       return res.status(404).json({
         message: "Product not found with barcode: " + productId
@@ -44,7 +42,6 @@ exports.updateProduct = async (req, res) => {
   try {
     const { barcode, name, price, quantity, orderlimit, description, category } = req.body;
     const categoryId = await Category.findOne({ name: { $regex: category, $options: 'i' } }).distinct('_id')
-    console.log(categoryId)
     const product = await Product.findOneAndUpdate(
       { barcode: req.params.barcode },
       { barcode, name, price, quantity, orderlimit, description, category: categoryId[0] },
@@ -55,7 +52,7 @@ exports.updateProduct = async (req, res) => {
         message: "Product not found with id " + req.params.barcode
       });
     }
-    res.json(product);
+    res.status(200).json(product);
   } catch (err) {
     res.status(500).json({
       message: err.message || "Some error occurred while updating the product."
@@ -71,7 +68,7 @@ exports.getProductById = async (req, res) => {
         message: "Product not found with id " + req.params.barcode
       });
     }
-    res.json(product);
+    res.status(200).json(product);
   } catch (err) {
     res.status(500).json({
       message: "Error retrieving product with id " + req.params.barcode
@@ -82,9 +79,8 @@ exports.getProductById = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find().populate({ path: 'category', select: 'name -_id' });
-    res.json(products);
+    res.status(200).json(products);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Error retrieving products. Please try again later' });
   }
 }

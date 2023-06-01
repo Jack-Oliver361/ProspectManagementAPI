@@ -18,8 +18,8 @@ exports.signup = async (req, res) => {
             username, password: encryptedPassword, role
         })
         res.status(200).json({ message: 'User: ' + user.username + ' created successfully' });
-    } catch (error) {
-        res.status(500).json(error.message)
+    } catch (err) {
+        res.status(500).json({ message: err.message })
     }
 }
 
@@ -44,15 +44,19 @@ exports.signin = async (req, res) => {
         }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES })
 
         res.cookie("token", token, { httpOnly: true })
-        res.json({ message: "Login successful" })
+        res.status(200).json({ message: "Login successful" })
 
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        res.status(500).json({ message: err.message })
 
     }
 }
 exports.signout = async (req, res) => {
-    res.status(200).clearCookie('token').json({ message: 'logged out' });
+    try {
+        res.status(200).clearCookie('token').json({ message: 'logged out' });
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
 }
 
 
@@ -79,7 +83,7 @@ exports.adminCheck = (req, res, next) => {
             return res.status(403).json({ message: "Insufficient permissions" });
         }
         next()
-    } catch (error) {
+    } catch (err) {
         return res.status(401).send({ message: `No Access token provided` })
 
     }
