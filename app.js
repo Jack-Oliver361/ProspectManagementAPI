@@ -13,7 +13,7 @@ var corsOptions = {
 
 app.use(express.json());
 app.use(cookieParser());
-
+app.use(cors(corsOptions));
 app.use('/api', routes);
 
 app.use(function (err, req, res, next) {
